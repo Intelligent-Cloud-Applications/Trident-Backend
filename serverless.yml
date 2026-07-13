@@ -42,7 +42,7 @@ provider:
 
 custom:
   tableName: TridentData-${self:provider.stage}
-  uploadBucketName: ${env:UPLOAD_BUCKET_NAME, 'trident.byshubhranshu.com'}
+  uploadBucketName: ${env:UPLOAD_BUCKET_NAME, 'trident-backend'}
 
 resources:
   Resources:
