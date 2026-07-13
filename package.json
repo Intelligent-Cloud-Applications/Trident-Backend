@@ -1,0 +1,21 @@
+{
+  "name": "trident-backend",
+  "version": "1.0.0",
+  "description": "Standalone AWS Serverless REST API Backend for Trident Institution",
+  "main": "src/controllers/notices/getAll.js",
+  "scripts": {
+    "deploy": "serverless deploy --stage prod",
+    "remove": "serverless remove --stage prod"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.750.0",
+    "@aws-sdk/client-s3": "^3.750.0",
+    "@aws-sdk/lib-dynamodb": "^3.750.0",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "serverless": "^3.39.0"
+  }
+}

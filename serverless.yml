@@ -1,0 +1,165 @@
+service: trident-backend
+
+useDotenv: true
+
+package:
+  excludeDevDependencies: true
+  patterns:
+    - '!.serverless/**'
+    - '!.git/**'
+    - '!README.md'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'prod'}
+  apiGateway:
+    binaryMediaTypes:
+      - multipart/form-data
+      - application/octet-stream
+  environment:
+    STAGE: ${self:provider.stage}
+    TABLE_NAME: ${self:custom.tableName}
+    UPLOAD_BUCKET_NAME: ${self:custom.uploadBucketName}
+    JWT_SECRET: ${env:JWT_SECRET, 'default_dev_jwt_secret_change_in_prod'}
+    ADMIN_USERNAME: ${env:ADMIN_USERNAME, 'admin@tat.tekkzy.com'}
+    ADMIN_PASSWORD_HASH: ${env:ADMIN_PASSWORD_HASH, ''}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - "s3:*"
+          Resource:
+            - "arn:aws:s3:::${self:custom.uploadBucketName}/*"
+        - Effect: Allow
+          Action:
+            - "dynamodb:*"
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:custom.tableName}"
+
+custom:
+  tableName: TridentData-${self:provider.stage}
+  uploadBucketName: ${env:UPLOAD_BUCKET_NAME, 'trident.byshubhranshu.com'}
+
+resources:
+  Resources:
+    GatewayResponseDefault4XX:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+
+    TridentDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+functions:
+  adminLogin:
+    handler: src/controllers/auth/login.handler
+    events:
+      - http:
+          path: /admin/login
+          method: POST
+          cors:
+            origin: "*"
+
+  getNotices:
+    handler: src/controllers/notices/getAll.handler
+    events:
+      - http:
+          path: /notices
+          method: GET
+          cors:
+            origin: "*"
+
+  createNotice:
+    handler: src/controllers/notices/create.handler
+    events:
+      - http:
+          path: /admin/notices
+          method: POST
+          cors:
+            origin: "*"
+
+  updateNotice:
+    handler: src/controllers/notices/update.handler
+    events:
+      - http:
+          path: /admin/notices/{id}
+          method: PUT
+          cors:
+            origin: "*"
+
+  deleteNotice:
+    handler: src/controllers/notices/delete.handler
+    events:
+      - http:
+          path: /admin/notices/{id}
+          method: DELETE
+          cors:
+            origin: "*"
+
+  getEvents:
+    handler: src/controllers/events/getAll.handler
+    events:
+      - http:
+          path: /events
+          method: GET
+          cors:
+            origin: "*"
+
+  createEvent:
+    handler: src/controllers/events/create.handler
+    events:
+      - http:
+          path: /admin/events
+          method: POST
+          cors:
+            origin: "*"
+
+  updateEvent:
+    handler: src/controllers/events/update.handler
+    events:
+      - http:
+          path: /admin/events/{id}
+          method: PUT
+          cors:
+            origin: "*"
+
+  deleteEvent:
+    handler: src/controllers/events/delete.handler
+    events:
+      - http:
+          path: /admin/events/{id}
+          method: DELETE
+          cors:
+            origin: "*"
+
+  uploadFile:
+    handler: src/controllers/upload/uploadFile.handler
+    timeout: 30
+    events:
+      - http:
+          path: /admin/upload
+          method: POST
+          cors:
+            origin: "*"
+
