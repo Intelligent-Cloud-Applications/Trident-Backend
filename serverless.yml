@@ -26,10 +26,10 @@ provider:
     UPLOAD_BUCKET_NAME: ${self:custom.uploadBucketName}
     JWT_SECRET: ${env:JWT_SECRET, 'default_dev_jwt_secret_change_in_prod'}
     ADMIN1_USERNAME: ${env:ADMIN1_USERNAME, 'admin1@tat.tekkzy.com'}
-    ADMIN1_PASSWORD_HASH: ${env:ADMIN1_PASSWORD_HASH, ''}
+    ADMIN1_PASSWORD: ${env:ADMIN1_PASSWORD, 'Sumanta123@tat.tekkzy.com'}
     ADMIN1_DISPLAY_NAME: ${env:ADMIN1_DISPLAY_NAME, 'Sumanta Sir'}
     ADMIN2_USERNAME: ${env:ADMIN2_USERNAME, 'admin2@tat.tekkzy.com'}
-    ADMIN2_PASSWORD_HASH: ${env:ADMIN2_PASSWORD_HASH, ''}
+    ADMIN2_PASSWORD: ${env:ADMIN2_PASSWORD, 'Admin2@tat.tekkzy.com'}
     ADMIN2_DISPLAY_NAME: ${env:ADMIN2_DISPLAY_NAME, 'Others'}
 
   iam:
