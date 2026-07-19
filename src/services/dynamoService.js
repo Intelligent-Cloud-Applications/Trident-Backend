@@ -67,17 +67,26 @@ async function updateItemFields(id, type, fieldsToUpdate) {
   return response.Attributes;
 }
 
-async function archiveItemById(id, type) {
+/**
+ * Soft-delete (archive) an item and record which admin performed the action.
+ * @param {string} id - Item ID
+ * @param {string} type - Item type (NOTICE or EVENT)
+ * @param {object} adminInfo - { archivedBy, archivedByRole, archivedByName }
+ */
+async function archiveItemById(id, type, adminInfo = {}) {
   const command = new UpdateCommand({
     TableName: TABLE_NAME,
     Key: {
       PK: `TYPE#${type}`,
       SK: `ID#${id}`,
     },
-    UpdateExpression: 'set isArchived = :true, updatedAt = :updatedAt',
+    UpdateExpression: 'set isArchived = :true, updatedAt = :updatedAt, archivedBy = :archivedBy, archivedByRole = :archivedByRole, archivedByName = :archivedByName',
     ExpressionAttributeValues: {
       ':true': true,
       ':updatedAt': new Date().toISOString(),
+      ':archivedBy': adminInfo.archivedBy || 'unknown',
+      ':archivedByRole': adminInfo.archivedByRole || 'unknown',
+      ':archivedByName': adminInfo.archivedByName || 'Unknown',
     },
     ReturnValues: 'ALL_NEW',
   });
