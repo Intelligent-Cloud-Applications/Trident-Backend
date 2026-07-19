@@ -3,7 +3,7 @@
  */
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
-const BUCKET_REGION = process.env.UPLOAD_BUCKET_REGION || 'eu-north-1';
+const BUCKET_REGION = process.env.UPLOAD_BUCKET_REGION || 'us-east-1';
 const s3Client = new S3Client({ region: BUCKET_REGION });
 const BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME;
 

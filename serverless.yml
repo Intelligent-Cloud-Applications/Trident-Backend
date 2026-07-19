@@ -24,6 +24,7 @@ provider:
     STAGE: ${self:provider.stage}
     TABLE_NAME: ${self:custom.tableName}
     UPLOAD_BUCKET_NAME: ${self:custom.uploadBucketName}
+    UPLOAD_BUCKET_REGION: ${env:UPLOAD_BUCKET_REGION, 'us-east-1'}
     JWT_SECRET: ${env:JWT_SECRET, 'default_dev_jwt_secret_change_in_prod'}
     ADMIN_USERNAME: ${env:ADMIN_USERNAME, 'admin@tat.tekkzy.com'}
     ADMIN_PASSWORD_HASH: ${env:ADMIN_PASSWORD_HASH, ''}
