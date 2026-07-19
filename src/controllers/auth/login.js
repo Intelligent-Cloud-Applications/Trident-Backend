@@ -1,5 +1,6 @@
 /**
  * POST /admin/login Controller
+ * Supports multi-admin authentication (Admin 1 / Admin 2).
  */
 const { verifyAdminCredentials, generateToken } = require('../../services/authService');
 const { success, error } = require('../../utils/response');
@@ -15,20 +16,24 @@ const login = async (event) => {
 
   const { username, password } = body;
 
-  const isValid = await verifyAdminCredentials(username, password);
-  if (!isValid) {
+  const admin = await verifyAdminCredentials(username, password);
+  if (!admin) {
     return error('Invalid credentials', 401);
   }
 
-  const token = generateToken({ username, role: 'admin' });
+  const token = generateToken({
+    username: admin.username,
+    role: admin.role,
+    displayName: admin.displayName,
+  });
 
   return success({
     success: true,
     token,
     user: {
-      username,
-      name: 'Trident Admin',
-      role: 'admin',
+      username: admin.username,
+      name: admin.displayName,
+      role: admin.role,
     },
   });
 };

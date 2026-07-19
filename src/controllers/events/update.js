@@ -17,7 +17,12 @@ const update = async (event) => {
     return error('Invalid JSON payload', 400);
   }
 
-  const updated = await updateItemFields(id, 'EVENT', data);
+  const updated = await updateItemFields(id, 'EVENT', {
+    ...data,
+    updatedBy: event.user?.username || 'unknown',
+    updatedByRole: event.user?.role || 'unknown',
+    updatedByName: event.user?.displayName || 'Unknown',
+  });
   return success(updated);
 };
 

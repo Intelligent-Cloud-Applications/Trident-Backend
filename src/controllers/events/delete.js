@@ -10,7 +10,11 @@ const del = async (event) => {
   const id = event.pathParameters?.id;
   if (!id) return error('Event ID is required', 400);
 
-  const result = await archiveItemById(id, 'EVENT');
+  const result = await archiveItemById(id, 'EVENT', {
+    archivedBy: event.user?.username || 'unknown',
+    archivedByRole: event.user?.role || 'unknown',
+    archivedByName: event.user?.displayName || 'Unknown',
+  });
   return success(result);
 };
 
