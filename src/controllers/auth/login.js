@@ -16,7 +16,7 @@ const login = async (event) => {
 
   const { username, password } = body;
 
-  const admin = await verifyAdminCredentials(username, password);
+  const admin = verifyAdminCredentials(username, password);
   if (!admin) {
     return error('Invalid credentials', 401);
   }
