@@ -8,8 +8,8 @@ const s3Client = new S3Client({ region: BUCKET_REGION });
 const BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME;
 
 async function uploadFileToS3(fileName, base64Data, contentType = 'image/jpeg') {
-  // Strip data URL prefix if present (e.g. data:image/jpeg;base64,...)
-  const base64Clean = base64Data.replace(/^data:([A-Za-z-+\/]+);base64,/, '');
+  // Strip data URL prefix if present (e.g. data:application/pdf;base64,...)
+  const base64Clean = base64Data.replace(/^data:([^;]+);base64,/, '');
   const buffer = Buffer.from(base64Clean, 'base64');
 
   const key = `uploads/${Date.now()}-${fileName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
