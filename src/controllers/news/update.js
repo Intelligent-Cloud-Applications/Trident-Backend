@@ -1,5 +1,5 @@
 /**
- * PUT /admin/events/{id} Controller
+ * PUT /admin/news/{id} Controller
  */
 const { updateItemFields } = require('../../services/dynamoService');
 const { success, error } = require('../../utils/response');
@@ -8,7 +8,7 @@ const { withErrorHandler } = require('../../middleware/errorHandler');
 
 const update = async (event) => {
   const id = event.pathParameters?.id;
-  if (!id) return error('Event ID is required', 400);
+  if (!id) return error('News ID is required', 400);
 
   let data;
   try {
@@ -17,7 +17,7 @@ const update = async (event) => {
     return error('Invalid JSON payload', 400);
   }
 
-  const updated = await updateItemFields(id, 'EVENT', {
+  const updated = await updateItemFields(id, 'NEWS', {
     ...data,
     updatedBy: event.user?.username || 'unknown',
     updatedByRole: event.user?.role || 'unknown',

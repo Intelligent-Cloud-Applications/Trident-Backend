@@ -1,7 +1,6 @@
 /**
- * POST /admin/notices Controller
+ * POST /admin/news Controller
  */
-const { v4: uuidv4 } = require('uuid');
 const { putItem } = require('../../services/dynamoService');
 const { success, error } = require('../../utils/response');
 const { requireAuth } = require('../../middleware/auth');
@@ -15,18 +14,18 @@ const create = async (event) => {
     return error('Invalid JSON payload', 400);
   }
 
-  const id = 'notice-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+  const id = 'news-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
   const timestamp = new Date().toISOString();
 
   const item = {
-    PK: 'TYPE#NOTICE',
+    PK: 'TYPE#NEWS',
     SK: `ID#${id}`,
     id,
-    type: data.category || 'General',
     ...data,
     source: 'admin',
     isArchived: false,
-    isNew: true,
+    isNew: data.isNew ?? true,
+    featured: data.featured ?? false,
     createdBy: event.user?.username || 'unknown',
     createdByRole: event.user?.role || 'unknown',
     createdByName: event.user?.displayName || 'Unknown',

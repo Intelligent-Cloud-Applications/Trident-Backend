@@ -1,5 +1,5 @@
 /**
- * DELETE /admin/notices/{id} Controller
+ * DELETE /admin/news/{id} Controller
  */
 const { archiveItemById } = require('../../services/dynamoService');
 const { success, error } = require('../../utils/response');
@@ -8,9 +8,9 @@ const { withErrorHandler } = require('../../middleware/errorHandler');
 
 const del = async (event) => {
   const id = event.pathParameters?.id;
-  if (!id) return error('Notice ID is required', 400);
+  if (!id) return error('News ID is required', 400);
 
-  const result = await archiveItemById(id, 'NOTICE', {
+  const result = await archiveItemById(id, 'NEWS', {
     archivedBy: event.user?.username || 'unknown',
     archivedByRole: event.user?.role || 'unknown',
     archivedByName: event.user?.displayName || 'Unknown',

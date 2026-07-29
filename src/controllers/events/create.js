@@ -26,7 +26,9 @@ const create = async (event) => {
     source: 'admin',
     isArchived: false,
     isNew: true,
-    createdBy: event.user?.username || 'admin@tat.tekkzy.com',
+    createdBy: event.user?.username || 'unknown',
+    createdByRole: event.user?.role || 'unknown',
+    createdByName: event.user?.displayName || 'Unknown',
     createdAt: timestamp,
     updatedAt: timestamp,
   };

@@ -1,26 +1,41 @@
 /**
  * Authentication Service
+ * Supports multiple admin accounts with distinct roles.
  * Compares credentials using bcrypt and generates JWT tokens.
  */
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_change_in_prod';
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin@tat.tekkzy.com';
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 
-async function verifyAdminCredentials(username, password) {
-  if (!username || !password) return false;
-  if (username.trim().toLowerCase() !== ADMIN_USERNAME.toLowerCase()) {
-    return false;
-  }
+// Admin credentials registry — loaded from environment variables
+const ADMINS = [
+  {
+    username: process.env.ADMIN1_USERNAME || 'admin1@tat.tekkzy.com',
+    password: process.env.ADMIN1_PASSWORD || 'Sumanta123@tat.tekkzy.com',
+    displayName: process.env.ADMIN1_DISPLAY_NAME || 'Sumanta Sir',
+    role: 'admin1',
+  },
+  {
+    username: process.env.ADMIN2_USERNAME || 'admin2@tat.tekkzy.com',
+    password: process.env.ADMIN2_PASSWORD || 'Admin2@tat.tekkzy.com',
+    displayName: process.env.ADMIN2_DISPLAY_NAME || 'Others',
+    role: 'admin2',
+  },
+];
 
-  if (ADMIN_PASSWORD_HASH) {
-    return await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
-  }
+/**
+ * Verify admin credentials against the registry.
+ * @returns {object|null} The matched admin object, or null if invalid.
+ */
+function verifyAdminCredentials(username, password) {
+  if (!username || !password) return null;
 
-  // Fallback dev check if hash is not configured
-  return password === 'Password123@TRIDENT';
+  const admin = ADMINS.find(
+    (a) => a.username.toLowerCase() === username.trim().toLowerCase()
+  );
+  if (!admin) return null;
+
+  return password === admin.password ? admin : null;
 }
 
 function generateToken(payload) {
