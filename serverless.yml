@@ -65,7 +65,8 @@ resources:
     TridentDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:custom.tableName}
+        TableName: ${self
+        :custom.tableName}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: PK
@@ -155,6 +156,42 @@ functions:
     events:
       - http:
           path: /admin/events/{id}
+          method: DELETE
+          cors:
+            origin: "*"
+
+  getNews:
+    handler: src/controllers/news/getAll.handler
+    events:
+      - http:
+          path: /news
+          method: GET
+          cors:
+            origin: "*"
+
+  createNews:
+    handler: src/controllers/news/create.handler
+    events:
+      - http:
+          path: /admin/news
+          method: POST
+          cors:
+            origin: "*"
+
+  updateNews:
+    handler: src/controllers/news/update.handler
+    events:
+      - http:
+          path: /admin/news/{id}
+          method: PUT
+          cors:
+            origin: "*"
+
+  deleteNews:
+    handler: src/controllers/news/delete.handler
+    events:
+      - http:
+          path: /admin/news/{id}
           method: DELETE
           cors:
             origin: "*"
