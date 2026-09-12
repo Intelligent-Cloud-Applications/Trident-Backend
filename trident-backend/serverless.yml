@@ -1,0 +1,207 @@
+service: trident-backend
+
+useDotenv: true
+
+package:
+  excludeDevDependencies: true
+  patterns:
+    - '!.serverless/**'
+    - '!.git/**'
+    - '!README.md'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'prod'}
+  deploymentBucket:
+    name: ${env:DEPLOYMENT_BUCKET_NAME, 'trident-backend'}
+  apiGateway:
+    binaryMediaTypes:
+      - multipart/form-data
+      - application/octet-stream
+  environment:
+    STAGE: ${self:provider.stage}
+    TABLE_NAME: ${self:custom.tableName}
+    UPLOAD_BUCKET_NAME: ${self:custom.uploadBucketName}
+    JWT_SECRET: ${env:JWT_SECRET, 'default_dev_jwt_secret_change_in_prod'}
+    ADMIN1_USERNAME: ${env:ADMIN1_USERNAME, 'admin1@tat.tekkzy.com'}
+    ADMIN1_PASSWORD: ${env:ADMIN1_PASSWORD, 'Sumanta123@tat.tekkzy.com'}
+    ADMIN1_DISPLAY_NAME: ${env:ADMIN1_DISPLAY_NAME, 'Sumanta Sir'}
+    ADMIN2_USERNAME: ${env:ADMIN2_USERNAME, 'admin2@tat.tekkzy.com'}
+    ADMIN2_PASSWORD: ${env:ADMIN2_PASSWORD, 'Admin2@tat.tekkzy.com'}
+    ADMIN2_DISPLAY_NAME: ${env:ADMIN2_DISPLAY_NAME, 'Others'}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - "s3:*"
+          Resource:
+            - "arn:aws:s3:::${self:custom.uploadBucketName}/*"
+        - Effect: Allow
+          Action:
+            - "dynamodb:*"
+          Resource:
+            - "arn:aws:dynamodb:${aws:region}:*:table/${self:custom.tableName}"
+
+custom:
+  tableName: TridentData-${self:provider.stage}
+  uploadBucketName: ${env:UPLOAD_BUCKET_NAME, 'trident-backend'}
+
+resources:
+  Resources:
+    GatewayResponseDefault4XX:
+      Type: "AWS::ApiGateway::GatewayResponse"
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+
+    TridentDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+functions:
+  adminLogin:
+    handler: src/controllers/auth/login.handler
+    events:
+      - http:
+          path: /admin/login
+          method: POST
+          cors:
+            origin: "*"
+
+  getNotices:
+    handler: src/controllers/notices/getAll.handler
+    events:
+      - http:
+          path: /notices
+          method: GET
+          cors:
+            origin: "*"
+
+  createNotice:
+    handler: src/controllers/notices/create.handler
+    events:
+      - http:
+          path: /admin/notices
+          method: POST
+          cors:
+            origin: "*"
+
+  updateNotice:
+    handler: src/controllers/notices/update.handler
+    events:
+      - http:
+          path: /admin/notices/{id}
+          method: PUT
+          cors:
+            origin: "*"
+
+  deleteNotice:
+    handler: src/controllers/notices/delete.handler
+    events:
+      - http:
+          path: /admin/notices/{id}
+          method: DELETE
+          cors:
+            origin: "*"
+
+  getEvents:
+    handler: src/controllers/events/getAll.handler
+    events:
+      - http:
+          path: /events
+          method: GET
+          cors:
+            origin: "*"
+
+  createEvent:
+    handler: src/controllers/events/create.handler
+    events:
+      - http:
+          path: /admin/events
+          method: POST
+          cors:
+            origin: "*"
+
+  updateEvent:
+    handler: src/controllers/events/update.handler
+    events:
+      - http:
+          path: /admin/events/{id}
+          method: PUT
+          cors:
+            origin: "*"
+
+  deleteEvent:
+    handler: src/controllers/events/delete.handler
+    events:
+      - http:
+          path: /admin/events/{id}
+          method: DELETE
+          cors:
+            origin: "*"
+
+  getNews:
+    handler: src/controllers/news/getAll.handler
+    events:
+      - http:
+          path: /news
+          method: GET
+          cors:
+            origin: "*"
+
+  createNews:
+    handler: src/controllers/news/create.handler
+    events:
+      - http:
+          path: /admin/news
+          method: POST
+          cors:
+            origin: "*"
+
+  updateNews:
+    handler: src/controllers/news/update.handler
+    events:
+      - http:
+          path: /admin/news/{id}
+          method: PUT
+          cors:
+            origin: "*"
+
+  deleteNews:
+    handler: src/controllers/news/delete.handler
+    events:
+      - http:
+          path: /admin/news/{id}
+          method: DELETE
+          cors:
+            origin: "*"
+
+  uploadFile:
+    handler: src/controllers/upload/uploadFile.handler
+    timeout: 30
+    events:
+      - http:
+          path: /admin/upload
+          method: POST
+          cors:
+            origin: "*"
+
