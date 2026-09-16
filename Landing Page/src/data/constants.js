@@ -34,17 +34,8 @@ export const NEWS = [
   },
 ];
 
-export const EVENTS = [
-  { date: "Apr 25", month: "Apr", day: "25", title: "Industry-Academia Conclave 2026", venue: "Main Auditorium", type: "Seminar" },
-  { date: "May 03", month: "May", day: "03", title: "TRILOGY Magazine Launch — Issue 12", venue: "Conference Hall", type: "Publication" },
-  { date: "May 10", month: "May", day: "10", title: "Alumni Meet 2026", venue: "Trident Campus", type: "Reunion" },
-  { date: "May 18", month: "May", day: "18", title: "National Seminar on Sustainable Tech", venue: "Seminar Hall", type: "Research" },
-  { date: "Jun 01", month: "Jun", day: "01", title: "Orientation Programme — New Batch 2026", venue: "Auditorium", type: "Academic" },
-  { date: "Jun 15", month: "Jun", day: "15", title: "Workshop on AI & Machine Learning", venue: "CS Lab Complex", type: "Workshop" },
-  { date: "Jul 05", month: "Jul", day: "05", title: "Inter-College Sports Championship", venue: "Sports Complex", type: "Sports" },
-  { date: "Jul 20", month: "Jul", day: "20", title: "Entrepreneurship Bootcamp 2026", venue: "CISCO thingQbator", type: "Workshop" },
-  { date: "Aug 02", month: "Aug", day: "02", title: "Independence Day Cultural Fest", venue: "Main Ground", type: "Cultural" },
-];
+
+
 
 export const PROGRAMS = [
   { name:"Computer Science & Engineering", dept:"B.Tech", icon:"💻", dur:"4 Years", seats:180, href:"https://academics-tat.tekkzy.com/computer-science-engineering" },

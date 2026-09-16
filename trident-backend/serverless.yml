@@ -123,42 +123,6 @@ functions:
           cors:
             origin: "*"
 
-  getEvents:
-    handler: src/controllers/events/getAll.handler
-    events:
-      - http:
-          path: /events
-          method: GET
-          cors:
-            origin: "*"
-
-  createEvent:
-    handler: src/controllers/events/create.handler
-    events:
-      - http:
-          path: /admin/events
-          method: POST
-          cors:
-            origin: "*"
-
-  updateEvent:
-    handler: src/controllers/events/update.handler
-    events:
-      - http:
-          path: /admin/events/{id}
-          method: PUT
-          cors:
-            origin: "*"
-
-  deleteEvent:
-    handler: src/controllers/events/delete.handler
-    events:
-      - http:
-          path: /admin/events/{id}
-          method: DELETE
-          cors:
-            origin: "*"
-
   getNews:
     handler: src/controllers/news/getAll.handler
     events:
@@ -195,12 +159,11 @@ functions:
           cors:
             origin: "*"
 
-  uploadFile:
-    handler: src/controllers/upload/uploadFile.handler
-    timeout: 30
+  getPresignedUrl:
+    handler: src/controllers/upload/getPresignedUrl.handler
     events:
       - http:
-          path: /admin/upload
+          path: /admin/upload/presign
           method: POST
           cors:
             origin: "*"

@@ -55,10 +55,8 @@ const DisclaimerPage    = lazy(() => import("./pages/DisclaimerPage"));
 
 // Public pages
 const AllNotices     = lazy(() => import("./pages/AllNotices"));
-const AllEvents      = lazy(() => import("./pages/AllEvents"));
 const AllNews        = lazy(() => import("./pages/AllNews"));
 const NewsDetail     = lazy(() => import("./pages/NewsDetail"));
-const EventDetail    = lazy(() => import("./pages/EventDetail"));
 
 // Admin Panel — protected
 const AdminLogin     = lazy(() => import("./pages/admin/AdminLogin"));
@@ -118,10 +116,10 @@ function Home() {
           <SectionDivider type="curve" topColor="#FAF7F2" bottomColor="#FAF9F6" height={50} />
           <Suspense fallback={<SectionFallback />}><Testimonials /></Suspense>
 
-          <SectionDivider type="gradient" topColor="#FAF9F6" bottomColor="#F5EEEC" accentColor="#E8BD63" accentHeight={8} height={50} />
+          <SectionDivider type="gradient" topColor="#FAF9F6" bottomColor="#F4F7F9" accentColor="#E8BD63" accentHeight={8} height={50} />
           <Suspense fallback={<SectionFallback />}><NewsSection /></Suspense>
 
-          <SectionDivider type="wave" topColor="#F5EEEC" bottomColor="#FAFAF8" height={30} />
+          <SectionDivider type="wave" topColor="#F4F7F9" bottomColor="#FAFAF8" height={30} />
           <Suspense fallback={<SectionFallback />}><NoticeBoard /></Suspense>
         </main>
       </div>
@@ -296,8 +294,6 @@ export default function App() {
 
             {/* All Notices — /notice */}
             <Route path="/notice" element={<AllNotices />} />
-            <Route path="/events" element={<AllEvents />} />
-            <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/news" element={<AllNews />} />
             <Route path="/news/:id" element={<NewsDetail />} />
 

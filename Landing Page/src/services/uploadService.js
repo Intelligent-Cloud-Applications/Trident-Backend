@@ -1,60 +1,92 @@
 /**
  * Upload Service for Trident
  * 
- * Uploads files to S3 via the trident-backend
- * POST /admin/upload endpoint (JWT protected).
- * Supports images (compressed), PDFs, documents, and any other file type.
+ * Uses pre-signed S3 URLs — files upload directly from browser to S3.
+ * XMLHttpRequest provides real-time upload progress (byte-level accuracy).
+ * 
+ * Used by both Notice and News admin forms.
  */
 
-import { compressImage } from '../utils/imageUtils';
 import { apiRequest } from './apiClient';
 
 /**
- * Read a file as base64 data URL (no compression).
- */
-const readFileAsDataUrl = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
-/**
- * Upload a file to S3 via the backend API.
- * Images are compressed; other files are uploaded as-is.
+ * Upload a single file with real-time progress tracking.
+ * 
+ * Flow:
+ * 1. Request pre-signed URL from backend (tiny JSON call)
+ * 2. PUT file directly to S3 via XMLHttpRequest (supports onprogress)
+ * 3. Return the final public S3 URL
+ * 
  * @param {File} file - The file to upload
- * @returns {Promise<string>} - The public S3 URL of the uploaded file
+ * @param {(percent: number) => void} onProgress - Progress callback (0-100)
+ * @returns {Promise<{url: string, name: string, type: string}>}
  */
-export const uploadFile = async (file) => {
-  const isImage = file.type.startsWith('image/');
-
-  let fileData;
-  let contentType = file.type || 'application/octet-stream';
-
-  if (isImage) {
-    console.log('[UPLOAD] Compressing image...');
-    fileData = await compressImage(file);
-    contentType = 'image/jpeg';
-  } else {
-    console.log('[UPLOAD] Reading file as base64...');
-    fileData = await readFileAsDataUrl(file);
-  }
-
-  console.log('[UPLOAD] Uploading to Backend API...');
-  const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-
-  const data = await apiRequest('/admin/upload', {
+export async function uploadFileWithProgress(file, onProgress = () => {}) {
+  // Step 1: Get pre-signed URL from backend
+  const { uploadUrl, fileUrl } = await apiRequest('/admin/upload/presign', {
     method: 'POST',
-    body: { fileName, fileData, contentType },
+    body: {
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+    },
     auth: true,
   });
 
-  if (data?.url) {
-    console.log('[UPLOAD] ✅ Success! S3 URL:', data.url);
-    return data.url;
+  // Step 2: Upload directly to S3 with XMLHttpRequest for progress
+  await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    // Real-time progress: fires continuously as bytes are sent
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        onProgress(percent);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress(100);
+        resolve();
+      } else {
+        reject(new Error(`S3 upload failed with status ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error during upload'));
+    xhr.ontimeout = () => reject(new Error('Upload timed out'));
+
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.send(file); // Send raw file — no base64 encoding needed
+  });
+
+  // Determine file category for UI icons
+  const fileType = file.type.startsWith('image/') ? 'image'
+    : file.type === 'application/pdf' ? 'pdf'
+    : file.type.startsWith('video/') ? 'video'
+    : 'file';
+
+  return { url: fileUrl, name: file.name, type: fileType };
+}
+
+/**
+ * Upload multiple files with individual progress tracking.
+ * Files are uploaded sequentially to avoid overwhelming the connection.
+ * 
+ * @param {File[]} files - Array of files to upload
+ * @param {(fileIndex: number, percent: number, fileName: string) => void} onFileProgress
+ * @returns {Promise<Array<{url: string, name: string, type: string}>>}
+ */
+export async function uploadMultipleFiles(files, onFileProgress = () => {}) {
+  const results = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const result = await uploadFileWithProgress(files[i], (percent) => {
+      onFileProgress(i, percent, files[i].name);
+    });
+    results.push(result);
   }
 
-  throw new Error('S3 upload returned no URL');
-};
+  return results;
+}

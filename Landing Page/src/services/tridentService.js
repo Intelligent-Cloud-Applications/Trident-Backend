@@ -3,7 +3,7 @@
  * 
  * Handles all data operations via the trident-backend REST API.
  * 
- * Public endpoints:  GET /notices, GET /events
+ * Public endpoints:  GET /notices, GET /news
  * Admin endpoints:   POST/PUT/DELETE with JWT auth
  */
 
@@ -37,31 +37,6 @@ export async function getAllNotices() {
     return await apiRequest('/notices');
   } catch (error) {
     console.error('[Trident Service] Failed to fetch all notices:', error);
-    return [];
-  }
-}
-
-/**
- * Get active events from the backend.
- * Backend already filters out archived events.
- */
-export async function getEvents() {
-  try {
-    return await apiRequest('/events');
-  } catch (error) {
-    console.warn('[Trident Service] Failed to fetch events:', error.message);
-    return [];
-  }
-}
-
-/**
- * Get ALL events (including archived) — for admin dashboard only.
- */
-export async function getAllEvents() {
-  try {
-    return await apiRequest('/events');
-  } catch (error) {
-    console.error('[Trident Service] Failed to fetch all events:', error);
     return [];
   }
 }
@@ -106,44 +81,6 @@ export async function archiveNotice(noticeId) {
     auth: true,
   });
   console.log('[Trident Service] ✅ Notice archived:', noticeId);
-  return result;
-}
-
-/**
- * Create a new event.
- */
-export async function createEvent(eventData) {
-  const result = await apiRequest('/admin/events', {
-    method: 'POST',
-    body: eventData,
-    auth: true,
-  });
-  console.log('[Trident Service] ✅ Event created:', result.id);
-  return result;
-}
-
-/**
- * Update an existing event.
- */
-export async function updateEvent(eventId, updates) {
-  const result = await apiRequest(`/admin/events/${eventId}`, {
-    method: 'PUT',
-    body: updates,
-    auth: true,
-  });
-  console.log('[Trident Service] ✅ Event updated:', eventId);
-  return result;
-}
-
-/**
- * Archive (soft-delete) an event.
- */
-export async function archiveEvent(eventId) {
-  const result = await apiRequest(`/admin/events/${eventId}`, {
-    method: 'DELETE',
-    auth: true,
-  });
-  console.log('[Trident Service] ✅ Event archived:', eventId);
   return result;
 }
 

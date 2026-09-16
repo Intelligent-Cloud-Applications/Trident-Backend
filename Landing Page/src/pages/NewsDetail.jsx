@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import {
   ArrowLeft, Calendar, Sparkles, Newspaper, ArrowUpRight, Tag,
+  Download, Image, X,
 } from "lucide-react";
 import { getNews } from "../services/tridentService";
 import { NEWS } from "../data/constants";
@@ -52,7 +53,7 @@ const CAT_COLORS = {
 
 /* ─── Related News Card ─── */
 function RelatedCard({ item }) {
-  const imgSrc = item.imageUrl || IMG_MAP[item.img] || '';
+  const imgSrc = item.coverImage || item.imageUrl || IMG_MAP[item.img] || '';
   const color = CAT_COLORS[item.cat] || '#A59381';
 
   return (
@@ -101,31 +102,37 @@ export default function NewsDetail() {
       .then(news => {
         if (cancelled) return;
         const mapped = news.map(n => ({
-          id: slugify(n.title),
+          id: n.id || slugify(n.title),
           date: n.date,
           cat: n.category || 'General',
           title: n.title,
           desc: n.description || '',
           featured: n.featured || false,
+          coverImage: n.coverImage || '',
           imageUrl: n.imageUrl || '',
           img: n.img || '',
+          images: n.images || [],
+          pdfs: n.pdfs || [],
           linkUrl: n.linkUrl || '',
         }));
 
-        // Merge with hardcoded
-        const hardcoded = NEWS.map((n, i) => ({
+        // Fallback to hardcoded only if API returns nothing
+        const hardcoded = NEWS.map((n) => ({
           id: slugify(n.title),
           date: n.date,
           cat: n.cat,
           title: n.title,
           desc: n.desc,
           featured: n.featured || false,
+          coverImage: '',
           imageUrl: '',
           img: n.img || '',
+          images: [],
+          pdfs: [],
           linkUrl: '',
         }));
 
-        const merged = [...mapped, ...hardcoded];
+        const merged = mapped.length > 0 ? mapped : hardcoded;
         setAllNews(merged);
 
         // If we don't have the item from router state, find it
@@ -140,7 +147,7 @@ export default function NewsDetail() {
     return () => { cancelled = true; };
   }, [id]);
 
-  const imgSrc = newsItem ? (newsItem.imageUrl || IMG_MAP[newsItem.img] || '') : '';
+  const imgSrc = newsItem ? (newsItem.coverImage || newsItem.imageUrl || IMG_MAP[newsItem.img] || '') : '';
   const color = newsItem ? (CAT_COLORS[newsItem.cat] || '#A59381') : '#A59381';
 
   // Related news: same category, excluding current
@@ -307,6 +314,63 @@ export default function NewsDetail() {
           </div>
         </div>
 
+        {/* ── Photo Gallery ── */}
+        {newsItem.images?.length > 0 && (
+          <div className="mt-14">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/5 flex items-center justify-center">
+                <Image size={18} className="text-blue-500/40" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#3E3A36]">Photo <span className="italic text-[#2C3A8C] font-serif">Gallery</span></h2>
+                <p className="text-[11px] text-[#3E3A36]/30 font-medium mt-0.5">{newsItem.images.length} photo{newsItem.images.length !== 1 ? 's' : ''}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {newsItem.images.map((url, i) => (
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                  className="group relative rounded-xl overflow-hidden bg-gray-50 aspect-[4/3] shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                  <img src={url} alt={`Gallery ${i + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.2s]" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <ArrowUpRight size={24} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── PDF Downloads ── */}
+        {newsItem.pdfs?.length > 0 && (
+          <div className="mt-14">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/5 flex items-center justify-center">
+                <Download size={18} className="text-amber-500/40" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#3E3A36]">Downloads</h2>
+                <p className="text-[11px] text-[#3E3A36]/30 font-medium mt-0.5">{newsItem.pdfs.length} file{newsItem.pdfs.length !== 1 ? 's' : ''} available</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {newsItem.pdfs.map((pdf, i) => (
+                <a key={i} href={pdf.url} target="_blank" rel="noopener noreferrer" download
+                  className="flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-100/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group">
+                  <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                    <span className="text-red-500 text-xs font-bold">PDF</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#3E3A36] truncate group-hover:text-[#2C3A8C] transition-colors">{pdf.name}</p>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2C3A8C]/5 text-[#2C3A8C] text-xs font-bold uppercase tracking-wider group-hover:bg-[#2C3A8C] group-hover:text-white transition-all">
+                    <Download size={12} /> Download
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         {/* ── Related News ── */}
         {relatedToShow.length > 0 && (
           <div className="mt-20">
