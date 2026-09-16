@@ -12,10 +12,29 @@ import { API_BASE_URL } from '../config/api';
 const TOKEN_KEY = 'trident_admin_token';
 
 /**
- * Get the stored JWT token.
+ * Get the stored JWT token. Checks expiration (exp claim) if present.
  */
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+
+  try {
+    const payloadStr = atob(token.split('.')[1]);
+    const payload = JSON.parse(payloadStr);
+    
+    // JWT exp is in seconds, Date.now() is in milliseconds
+    if (payload.exp && (payload.exp * 1000 < Date.now())) {
+      console.warn('[apiClient] JWT token expired, clearing.');
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
+    }
+  } catch (err) {
+    // Invalid token format
+    localStorage.removeItem(TOKEN_KEY);
+    return null;
+  }
+
+  return token;
 }
 
 /**

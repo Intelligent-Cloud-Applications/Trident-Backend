@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
-import { AuthProvider } from "./context/AuthContext";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet } from "react-router-dom";
 import { NoiseOverlay, CursorGlow } from "./utils/animations";
 
 // Critical above-the-fold — eager loaded
@@ -72,6 +72,30 @@ function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return null;
+}
+
+/**
+ * ProtectedRoute — blocks access to admin dashboard without valid login.
+ * Checks auth state from AuthContext. Redirects to /admin if not authenticated.
+ */
+function ProtectedRoute({ children }) {
+  // useAuth works here because ProtectedRoute is rendered inside AuthProvider
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/admin" replace />;
+  }
+  return children;
+}
+
+/**
+ * AdminLayout — Provides a single AuthProvider instance for all admin routes
+ */
+function AdminLayout() {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
 }
 
 function Home() {
@@ -297,9 +321,11 @@ export default function App() {
             <Route path="/news" element={<AllNews />} />
             <Route path="/news/:id" element={<NewsDetail />} />
 
-            {/* Admin Panel — Protected */}
-            <Route path="/admin" element={<AuthProvider><AdminLogin /></AuthProvider>} />
-            <Route path="/admin/dashboard" element={<AuthProvider><AdminDashboard /></AuthProvider>} />
+            {/* Admin Panel — shared AuthProvider, dashboard is protected */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminLogin />} />
+              <Route path="dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            </Route>
           </Routes>
         </Suspense>
       </main>
