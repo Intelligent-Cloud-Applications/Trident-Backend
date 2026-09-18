@@ -48,7 +48,7 @@ provider:
 
 custom:
   tableName: TridentData-${self:provider.stage}
-  uploadBucketName: ${env:UPLOAD_BUCKET_NAME, 'trident-backend'}
+  uploadBucketName: ${env:UPLOAD_BUCKET_NAME, 'trident-notice'}
 
 resources:
   Resources:
