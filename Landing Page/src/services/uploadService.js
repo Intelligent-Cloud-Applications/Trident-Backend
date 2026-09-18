@@ -7,14 +7,15 @@
  * Used by both Notice and News admin forms.
  */
 
-import { apiRequest } from './apiClient';
+import { API_BASE_URL } from '../config/api';
+import { getToken } from './apiClient';
 
 /**
  * Upload a single file with real-time progress tracking.
  * 
  * Flow:
- * 1. Request pre-signed URL from backend (tiny JSON call)
- * 2. PUT file directly to S3 via XMLHttpRequest (supports onprogress)
+ * 1. Read file as base64 using FileReader
+ * 2. POST base64 directly to backend via XMLHttpRequest (supports onprogress)
  * 3. Return the final public S3 URL
  * 
  * @param {File} file - The file to upload
@@ -22,19 +23,18 @@ import { apiRequest } from './apiClient';
  * @returns {Promise<{url: string, name: string, type: string}>}
  */
 export async function uploadFileWithProgress(file, onProgress = () => {}) {
-  // Step 1: Get pre-signed URL from backend
-  const { uploadUrl, fileUrl } = await apiRequest('/admin/upload/presign', {
-    method: 'POST',
-    body: {
-      fileName: file.name,
-      contentType: file.type || 'application/octet-stream',
-    },
-    auth: true,
+  // Step 1: Read file as base64
+  const base64Data = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
   });
 
-  // Step 2: Upload directly to S3 with XMLHttpRequest for progress
-  await new Promise((resolve, reject) => {
+  // Step 2: Upload base64 to backend via XMLHttpRequest
+  const data = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    const token = getToken();
 
     // Real-time progress: fires continuously as bytes are sent
     xhr.upload.onprogress = (e) => {
@@ -47,18 +47,33 @@ export async function uploadFileWithProgress(file, onProgress = () => {}) {
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         onProgress(100);
-        resolve();
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response.data); // Resolves with { fileUrl, key } from backend
+        } catch (e) {
+          reject(new Error('Invalid JSON response from server'));
+        }
       } else {
-        reject(new Error(`S3 upload failed with status ${xhr.status}`));
+        reject(new Error(`Backend upload failed with status ${xhr.status}`));
       }
     };
 
     xhr.onerror = () => reject(new Error('Network error during upload'));
     xhr.ontimeout = () => reject(new Error('Upload timed out'));
 
-    xhr.open('PUT', uploadUrl);
-    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-    xhr.send(file); // Send raw file — no base64 encoding needed
+    xhr.open('POST', `${API_BASE_URL}/admin/upload/base64`);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    const payload = JSON.stringify({
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      base64Data: base64Data
+    });
+
+    xhr.send(payload);
   });
 
   // Determine file category for UI icons
@@ -67,7 +82,7 @@ export async function uploadFileWithProgress(file, onProgress = () => {}) {
     : file.type.startsWith('video/') ? 'video'
     : 'file';
 
-  return { url: fileUrl, name: file.name, type: fileType };
+  return { url: data.fileUrl, name: file.name, type: fileType };
 }
 
 /**
