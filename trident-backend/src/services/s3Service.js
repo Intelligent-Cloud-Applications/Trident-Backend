@@ -42,7 +42,7 @@ async function generatePresignedUploadUrl(fileName, contentType) {
   const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
 
   // The final public URL where the file will be accessible after upload
-  const fileUrl = `https://s3.${BUCKET_REGION}.amazonaws.com/${BUCKET_NAME}/${key}`;
+  const fileUrl = `https://${BUCKET_NAME}.s3.${BUCKET_REGION}.amazonaws.com/${key}`;
 
   return { uploadUrl, fileUrl, key };
 }
