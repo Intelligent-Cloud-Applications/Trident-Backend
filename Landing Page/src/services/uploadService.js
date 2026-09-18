@@ -49,7 +49,7 @@ export async function uploadFileWithProgress(file, onProgress = () => {}) {
         onProgress(100);
         try {
           const response = JSON.parse(xhr.responseText);
-          resolve(response.data); // Resolves with { fileUrl, key } from backend
+          resolve(response); // Resolves with { fileUrl, key } from backend
         } catch (e) {
           reject(new Error('Invalid JSON response from server'));
         }
