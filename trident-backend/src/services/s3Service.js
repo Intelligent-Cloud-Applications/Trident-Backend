@@ -8,7 +8,11 @@ const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const BUCKET_REGION = process.env.UPLOAD_BUCKET_REGION || 'us-east-1';
-const s3Client = new S3Client({ region: BUCKET_REGION });
+const s3Client = new S3Client({ 
+  region: BUCKET_REGION,
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED'
+});
 const BUCKET_NAME = process.env.UPLOAD_BUCKET_NAME;
 
 /**
