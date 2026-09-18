@@ -43,6 +43,30 @@ async function generatePresignedUploadUrl(fileName, contentType) {
   return { uploadUrl, fileUrl, key };
 }
 
+async function uploadBase64ToS3(fileName, contentType, base64Data) {
+  const key = `uploads/${Date.now()}-${sanitizeFileName(fileName)}`;
+
+  // Remove the data URL prefix if it exists (e.g., "data:image/jpeg;base64,")
+  const base64String = base64Data.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+  const buffer = Buffer.from(base64String, 'base64');
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+    ContentEncoding: 'base64'
+  });
+
+  await s3Client.send(command);
+
+  // The final public URL where the file will be accessible after upload
+  const fileUrl = `https://s3.${BUCKET_REGION}.amazonaws.com/${BUCKET_NAME}/${key}`;
+
+  return { fileUrl, key };
+}
+
 module.exports = {
   generatePresignedUploadUrl,
+  uploadBase64ToS3
 };

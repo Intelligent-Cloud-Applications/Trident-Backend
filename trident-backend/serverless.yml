@@ -168,3 +168,12 @@ functions:
           cors:
             origin: "*"
 
+  uploadBase64:
+    handler: src/controllers/upload/uploadBase64.handler
+    events:
+      - http:
+          path: /admin/upload/base64
+          method: POST
+          cors:
+            origin: "*"
+
